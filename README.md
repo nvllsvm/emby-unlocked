@@ -16,6 +16,10 @@ This is **bullshit** for a GPLv2 licensed product. Of course someone is going to
 
 So while my main motivation was to **remove** the nag screen, unlocking all the premium features proved the simplest way.
 
+## Help! Premiere feature x does not work.
+While this patch makes your local server believe Emby Premiere features are unlocked, some features may still not function.
+For example, both tv.emby.media and the mobile apps rely upon validation with the Emby-owned mb3admin.com server.
+
 ## Patch
 Only a single patch is required to unlock Emby Premier. It has been tested with **Emby 3.2.27.0**.
 
