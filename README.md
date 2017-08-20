@@ -21,7 +21,7 @@ While this patch makes your local server believe Emby Premiere features are unlo
 For example, both tv.emby.media and the mobile apps rely upon validation with the Emby-owned mb3admin.com server.
 
 ## Patch
-Only a single patch is required to unlock Emby Premier. It has been tested with **Emby 3.2.27.0**.
+Only a single patch is required to unlock Emby Premier. It has been tested with **Emby 3.2.28.0**.
 
 [PluginSecurityManager.cs.patch](https://github.com/nvllsvm/emby-unlocked/blob/master/PluginSecurityManager.cs.patch)
 
