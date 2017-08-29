@@ -1,5 +1,5 @@
 # emby-unlocked
-Version: **Emby 3.2.29**
+Version: **Emby 3.2.30.0**
 
 Emby with the premium Emby Premiere features unlocked.
 
