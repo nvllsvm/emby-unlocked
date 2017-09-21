@@ -80,7 +80,7 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
         }
         if (systemInfo.MacAddress) {
             server.WakeOnLanInfos = [
-                    { MacAddress: systemInfo.MacAddress }
+                { MacAddress: systemInfo.MacAddress }
             ];
         }
     }
@@ -243,7 +243,7 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
         a = a.split('.');
         b = b.split('.');
 
-        for (var i = 0, length = Math.max(a.length, b.length) ; i < length; i++) {
+        for (var i = 0, length = Math.max(a.length, b.length); i < length; i++) {
             var aVal = parseInt(a[i] || '0');
             var bVal = parseInt(b[i] || '0');
 
@@ -271,7 +271,7 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
             return connectUser;
         };
 
-        self._minServerVersion = '3.2.20';
+        self._minServerVersion = '3.2.22';
 
         self.appVersion = function () {
             return appVersion;
@@ -1069,8 +1069,8 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
                 }
                 else if (result.Id !== server.Id) {
 
-                    // http request succeeded, but it's a different server than what was expected
-                    testNextConnectionMode(tests, index + 1, server, options, resolve);
+                    console.log('http request succeeded, but found a different server Id than what was expected');
+                    resolveFailure(self, resolve);
 
                 } else {
                     console.log('calling onSuccessfulConnection with connection mode ' + mode + ' with server ' + server.Name);
@@ -1438,7 +1438,7 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
             });
         };
 
-        self.getRegistrationInfo = function (feature, apiClient) {
+        self.getRegistrationInfo = function (feature, apiClient, options) {
             var cacheKey = "regInfo-" + apiClient.serverInfo().Id;
             appStorage.setItem(cacheKey, JSON.stringify({
                 lastValidDate: new Date().getTime(),
@@ -1602,3 +1602,5 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
         ConnectionManager: ConnectionManager
     };
 });
+        self.getRegistrationInfo = function (feature, apiClient) {
+        };
