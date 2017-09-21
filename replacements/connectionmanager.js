@@ -1602,5 +1602,3 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
         ConnectionManager: ConnectionManager
     };
 });
-        self.getRegistrationInfo = function (feature, apiClient) {
-        };
