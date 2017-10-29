@@ -271,7 +271,7 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
             return connectUser;
         };
 
-        self._minServerVersion = '3.2.26';
+        self._minServerVersion = '3.2.27';
 
         self.appVersion = function () {
             return appVersion;
