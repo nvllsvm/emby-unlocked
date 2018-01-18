@@ -30,12 +30,12 @@ The included version of this in the source distribution is minified. Thus, makin
 The only difference boils down to replacing ``self.getRegistrationInfo`` with this:
 
 ```
-self.getRegistrationInfo = function(feature, apiClient) {
+self.getRegistrationInfo = function (feature, apiClient, options) {
     var cacheKey = "regInfo-" + apiClient.serverInfo().Id;
     appStorage.setItem(cacheKey, JSON.stringify({
         lastValidDate: new Date().getTime(),
         deviceId: self.deviceId()
     }));
     return Promise.resolve();
-}
+};
 ```

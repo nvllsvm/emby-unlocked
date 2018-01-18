@@ -1,16 +1,7 @@
-define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory, appStorage) {
+﻿define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory, appStorage) {
     'use strict';
 
     var defaultTimeout = 20000;
-
-    var ConnectionState = {
-        Unavailable: 0,
-        ServerSelection: 1,
-        ServerSignIn: 2,
-        SignedIn: 3,
-        ConnectSignIn: 4,
-        ServerUpdateNeeded: 5
-    };
 
     var ConnectionMode = {
         Local: 0,
@@ -18,22 +9,19 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
         Manual: 2
     };
 
-    var ServerInfo = {
+    function getServerAddress(server, mode) {
 
-        getServerAddress: function (server, mode) {
-
-            switch (mode) {
-                case ConnectionMode.Local:
-                    return server.LocalAddress;
-                case ConnectionMode.Manual:
-                    return server.ManualAddress;
-                case ConnectionMode.Remote:
-                    return server.RemoteAddress;
-                default:
-                    return server.ManualAddress || server.LocalAddress || server.RemoteAddress;
-            }
+        switch (mode) {
+            case ConnectionMode.Local:
+                return server.LocalAddress;
+            case ConnectionMode.Manual:
+                return server.ManualAddress;
+            case ConnectionMode.Remote:
+                return server.RemoteAddress;
+            default:
+                return server.ManualAddress || server.LocalAddress || server.RemoteAddress;
         }
-    };
+    }
 
     function paramsToString(params) {
 
@@ -53,7 +41,7 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
     function resolveFailure(instance, resolve) {
 
         resolve({
-            State: ConnectionState.Unavailable,
+            State: 'Unavailable',
             ConnectUser: instance.connectUser()
         });
     }
@@ -70,8 +58,10 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
     function updateServerInfo(server, systemInfo) {
 
         server.Name = systemInfo.ServerName;
-        server.Id = systemInfo.Id;
 
+        if (systemInfo.Id) {
+            server.Id = systemInfo.Id;
+        }
         if (systemInfo.LocalAddress) {
             server.LocalAddress = systemInfo.LocalAddress;
         }
@@ -271,7 +261,7 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
             return connectUser;
         };
 
-        self._minServerVersion = '3.2.30';
+        self._minServerVersion = '3.2.33';
 
         self.appVersion = function () {
             return appVersion;
@@ -357,7 +347,7 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
 
             });
 
-            var existingServer = existingServers.length ? existingServers[0] : {};
+            var existingServer = existingServers.length ? existingServers[0] : apiClient.serverInfo();
             existingServer.DateLastAccessed = new Date().getTime();
             existingServer.LastConnectionMode = ConnectionMode.Manual;
             existingServer.ManualAddress = apiClient.serverAddress();
@@ -374,20 +364,6 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
             }
 
             events.trigger(self, 'apiclientcreated', [apiClient]);
-
-            if (existingServer.Id) {
-                return;
-            }
-
-            apiClient.getPublicSystemInfo().then(function (systemInfo) {
-
-                var credentials = credentialProvider.credentials();
-                existingServer.Id = systemInfo.Id;
-                apiClient.serverInfo(existingServer);
-
-                credentials.Servers = [existingServer];
-                credentialProvider.credentials(credentials);
-            });
         };
 
         self.clearData = function () {
@@ -416,7 +392,7 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
 
             if (!apiClient) {
 
-                var url = ServerInfo.getServerAddress(server, connectionMode);
+                var url = getServerAddress(server, connectionMode);
 
                 apiClient = new apiClientFactory(url, appName, appVersion, deviceName, deviceId, devicePixelRatio);
 
@@ -573,7 +549,7 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
                 throw new Error("credentials.ConnectUserId cannot be null");
             }
 
-            var url = ServerInfo.getServerAddress(server, connectionMode);
+            var url = getServerAddress(server, connectionMode);
 
             url = getEmbyServerUrl(url, "Connect/Exchange?format=json&ConnectUserId=" + credentials.ConnectUserId);
 
@@ -605,7 +581,7 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
 
         function validateAuthentication(server, connectionMode) {
 
-            var url = ServerInfo.getServerAddress(server, connectionMode);
+            var url = getServerAddress(server, connectionMode);
 
             return ajax({
 
@@ -695,7 +671,8 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
                         localUser: localUser,
                         name: connectUser ? connectUser.Name : (localUser ? localUser.Name : null),
                         imageUrl: image.url,
-                        supportsImageParams: image.supportsParams
+                        supportsImageParams: image.supportsParams,
+                        connectUser: connectUser
                     });
                 }
 
@@ -956,9 +933,9 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
 
                 return self.connectToServer(defaultServer, options).then(function (result) {
 
-                    if (result.State === ConnectionState.Unavailable) {
+                    if (result.State === 'Unavailable') {
 
-                        result.State = ConnectionState.ServerSelection;
+                        result.State = 'ServerSelection';
                     }
 
                     console.log('resolving connectToServers with result.State: ' + result.State);
@@ -971,7 +948,7 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
             if (firstServer) {
                 return self.connectToServer(firstServer, options).then(function (result) {
 
-                    if (result.State === ConnectionState.SignedIn) {
+                    if (result.State === 'SignedIn') {
 
                         return result;
 
@@ -979,7 +956,7 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
 
                     return {
                         Servers: servers,
-                        State: (!servers.length && !self.connectUser()) ? ConnectionState.ConnectSignIn : ConnectionState.ServerSelection,
+                        State: (!servers.length && !self.connectUser()) ? 'ConnectSignIn' : 'ServerSelection',
                         ConnectUser: self.connectUser()
                     };
                 });
@@ -987,7 +964,7 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
 
             return Promise.resolve({
                 Servers: servers,
-                State: (!servers.length && !self.connectUser()) ? ConnectionState.ConnectSignIn : ConnectionState.ServerSelection,
+                State: (!servers.length && !self.connectUser()) ? 'ConnectSignIn' : 'ServerSelection',
                 ConnectUser: self.connectUser()
             });
         };
@@ -1024,7 +1001,7 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
             }
 
             var mode = tests[index];
-            var address = ServerInfo.getServerAddress(server, mode);
+            var address = getServerAddress(server, mode);
             var enableRetry = false;
             var skipTest = false;
             var timeout = defaultTimeout;
@@ -1062,12 +1039,12 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
 
                     console.log('minServerVersion requirement not met. Server version: ' + result.Version);
                     resolve({
-                        State: ConnectionState.ServerUpdateNeeded,
+                        State: 'ServerUpdateNeeded',
                         Servers: [server]
                     });
 
                 }
-                else if (result.Id !== server.Id) {
+                else if (server.Id && result.Id !== server.Id) {
 
                     console.log('http request succeeded, but found a different server Id than what was expected');
                     resolveFailure(self, resolve);
@@ -1161,13 +1138,13 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
             result.ApiClient.setSystemInfo(systemInfo);
 
             result.State = server.AccessToken && options.enableAutoLogin !== false ?
-                ConnectionState.SignedIn :
-                ConnectionState.ServerSignIn;
+                'SignedIn' :
+                'ServerSignIn';
 
             result.Servers.push(server);
             result.ApiClient.updateServerInfo(server, connectionMode);
 
-            if (result.State === ConnectionState.SignedIn) {
+            if (result.State === 'SignedIn') {
                 afterConnected(result.ApiClient, options);
             }
 
@@ -1188,24 +1165,17 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
             function onFail() {
                 console.log('connectToAddress ' + address + ' failed');
                 return Promise.resolve({
-                    State: ConnectionState.Unavailable,
+                    State: 'Unavailable',
                     ConnectUser: instance.connectUser()
                 });
             }
 
-            return tryConnect(address, defaultTimeout).then(function (publicInfo) {
+            var server = {
+                ManualAddress: address,
+                LastConnectionMode: ConnectionMode.Manual
+            };
 
-                console.log('connectToAddress ' + address + ' succeeded');
-
-                var server = {
-                    ManualAddress: address,
-                    LastConnectionMode: ConnectionMode.Manual
-                };
-                updateServerInfo(server, publicInfo);
-
-                return self.connectToServer(server, options).catch(onFail);
-
-            }, onFail);
+            return self.connectToServer(server, options).catch(onFail);
         };
 
         self.loginToConnect = function (username, password) {
@@ -1595,10 +1565,5 @@ define(['events', 'apiclient', 'appStorage'], function (events, apiClientFactory
         return this._minServerVersion;
     };
 
-    return {
-        ConnectionState: ConnectionState,
-        ConnectionMode: ConnectionMode,
-        ServerInfo: ServerInfo,
-        ConnectionManager: ConnectionManager
-    };
+    return ConnectionManager;
 });
