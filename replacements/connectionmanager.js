@@ -1408,8 +1408,30 @@
             });
         };
 
+        function getCacheKey(feature, apiClient, options) {
+            options = options || {};
+            var viewOnly = options.viewOnly;
+
+            var cacheKey = 'regInfo-' + apiClient.serverId();
+
+            if (viewOnly) {
+                cacheKey += '-viewonly';
+            }
+
+            return cacheKey;
+        }
+
+        self.resetRegistrationInfo = function (apiClient) {
+
+            var cacheKey = getCacheKey('themes', apiClient, { viewOnly: true });
+            appStorage.removeItem(cacheKey);
+
+            cacheKey = getCacheKey('themes', apiClient, { viewOnly: false });
+            appStorage.removeItem(cacheKey);
+        };
+
         self.getRegistrationInfo = function (feature, apiClient, options) {
-            var cacheKey = "regInfo-" + apiClient.serverInfo().Id;
+            var cacheKey = getCacheKey(feature, apiClient, options);
             appStorage.setItem(cacheKey, JSON.stringify({
                 lastValidDate: new Date().getTime(),
                 deviceId: self.deviceId()

@@ -31,7 +31,7 @@ The only difference boils down to replacing ``self.getRegistrationInfo`` with th
 
 ```
 self.getRegistrationInfo = function (feature, apiClient, options) {
-    var cacheKey = "regInfo-" + apiClient.serverInfo().Id;
+    var cacheKey = getCacheKey(feature, apiClient, options);
     appStorage.setItem(cacheKey, JSON.stringify({
         lastValidDate: new Date().getTime(),
         deviceId: self.deviceId()

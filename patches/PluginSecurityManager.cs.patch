@@ -1,112 +1,140 @@
-*** PluginSecurityManager.cs	2017-10-24 01:42:03.000000000 -0400
---- /home/draje/PluginSecurityManager.cs	2017-10-24 07:47:54.224945251 -0400
-***************
-*** 245,337 ****
-              string mb2Equivalent = null,
-              string version = null)
-          {
-!             var regInfo = LicenseFile.GetRegInfo(feature);
-!             var lastChecked = regInfo == null ? DateTime.MinValue : regInfo.LastChecked;
-!             var expDate = regInfo == null ? DateTime.MinValue : regInfo.ExpirationDate;
-! 
-!             var maxCacheDays = 14;
-!             var nextCheckDate = new [] { expDate, lastChecked.AddDays(maxCacheDays) }.Min();
-! 
-!             if (nextCheckDate > DateTime.UtcNow.AddDays(maxCacheDays))
-!             {
-!                 nextCheckDate = DateTime.MinValue;
-!             }
-! 
-!             //check the reg file first to alleviate strain on the MB admin server - must actually check in every 30 days tho
-!             var reg = new RegRecord
-!             {
-!                 // Cache the result for up to a week
-!                 registered = regInfo != null && nextCheckDate >= DateTime.UtcNow && expDate >= DateTime.UtcNow,
-!                 expDate = expDate
-!             };
-! 
-!             var success = reg.registered;
-! 
-!             if (!(lastChecked > DateTime.UtcNow.AddDays(-1)) || !reg.registered)
-!             {
-!                 var data = new Dictionary<string, string>
-!                 {
-!                     { "feature", feature }, 
-!                     { "key", SupporterKey }, 
-!                     { "mac", _appHost.SystemId }, 
-!                     { "systemid", _appHost.SystemId }, 
-!                     { "mb2equiv", mb2Equivalent }, 
-!                     { "ver", version }, 
-!                     { "platform", _appHost.OperatingSystemDisplayName }
-!                 };
-! 
-!                 try
-!                 {
-!                     var options = new HttpRequestOptions
-!                     {
-!                         Url = MBValidateUrl,
-! 
-!                         // Seeing block length errors
-!                         EnableHttpCompression = false,
-!                         BufferContent = false
-!                     };
-! 
-!                     options.SetPostData(data);
-! 
-!                     using (var response = (await _httpClient.Post(options).ConfigureAwait(false)))
-!                     {
-!                         using (var json = response.Content)
-!                         {
-!                             reg = _jsonSerializer.DeserializeFromStream<RegRecord>(json);
-!                             success = true;
-!                         }
-!                     }
-! 
-!                     if (reg.registered)
-!                     {
-!                         _logger.Info("Registered for feature {0}", feature);
-!                         LicenseFile.AddRegCheck(feature, reg.expDate);
-!                     }
-!                     else
-!                     {
-!                         _logger.Info("Not registered for feature {0}", feature);
-!                         LicenseFile.RemoveRegCheck(feature);
-!                     }
-! 
-!                 }
-!                 catch (Exception e)
-!                 {
-!                     _logger.ErrorException("Error checking registration status of {0}", e, feature);
-!                 }
-!             }
-! 
-!             var record = new MBRegistrationRecord
-              {
-!                 IsRegistered = reg.registered,
-!                 ExpirationDate = reg.expDate,
-                  RegChecked = true,
-!                 RegError = !success
-              };
-- 
--             record.TrialVersion = IsInTrial(reg.expDate, record.RegChecked, record.IsRegistered);
--             record.IsValid = !record.RegChecked || record.IsRegistered || record.TrialVersion;
-- 
--             return record;
-          }
-  
-          private bool IsInTrial(DateTime expirationDate, bool regChecked, bool isRegistered)
---- 245,258 ----
-              string mb2Equivalent = null,
-              string version = null)
-          {
-!             return new MBRegistrationRecord
-              {
-!                 IsRegistered = true,
-                  RegChecked = true,
-!                 TrialVersion = false,
-!                 IsValid = true,
-!                 RegError = false
-              };
-          }
-  
-          private bool IsInTrial(DateTime expirationDate, bool regChecked, bool isRegistered)
+--- PluginSecurityManager.cs	2018-02-23 22:21:42.414182418 -0500
++++ PluginSecurityManager.cs.new	2018-02-23 22:21:09.458900628 -0500
+@@ -162,7 +162,6 @@
+                     {
+                         var msg = "Result from appstore registration was null.";
+                         _logger.Error(msg);
+-                        throw new ArgumentException(msg);
+                     }
+                     if (!String.IsNullOrEmpty(reg.key))
+                     {
+@@ -174,24 +173,16 @@
+             catch (ArgumentException)
+             {
+                 SaveAppStoreInfo(parameters);
+-                throw;
+             }
+             catch (HttpException e)
+             {
+                 _logger.ErrorException("Error registering appstore purchase {0}", e, parameters ?? "NO PARMS SENT");
+-
+-                if (e.StatusCode.HasValue && e.StatusCode.Value == HttpStatusCode.PaymentRequired)
+-                {
+-                    throw new PaymentRequiredException();
+-                }
+-                throw new Exception("Error registering store sale");
+             }
+             catch (Exception e)
+             {
+                 _logger.ErrorException("Error registering appstore purchase {0}", e, parameters ?? "NO PARMS SENT");
+                 SaveAppStoreInfo(parameters);
+                 //TODO - could create a re-try routine on start-up if this file is there.  For now we can handle manually.
+-                throw new Exception("Error registering store sale");
+             }
+ 
+         }
+@@ -213,93 +204,15 @@
+         private async Task<MBRegistrationRecord> GetRegistrationStatusInternal(string feature,
+             string version = null)
+         {
+-            var regInfo = LicenseFile.GetRegInfo(feature);
+-            var lastChecked = regInfo == null ? DateTime.MinValue : regInfo.LastChecked;
+-            var expDate = regInfo == null ? DateTime.MinValue : regInfo.ExpirationDate;
+-
+-            var maxCacheDays = 14;
+-            var nextCheckDate = new [] { expDate, lastChecked.AddDays(maxCacheDays) }.Min();
+-
+-            if (nextCheckDate > DateTime.UtcNow.AddDays(maxCacheDays))
+-            {
+-                nextCheckDate = DateTime.MinValue;
+-            }
+-
+-            //check the reg file first to alleviate strain on the MB admin server - must actually check in every 30 days tho
+-            var reg = new RegRecord
+-            {
+-                // Cache the result for up to a week
+-                registered = regInfo != null && nextCheckDate >= DateTime.UtcNow && expDate >= DateTime.UtcNow,
+-                expDate = expDate
+-            };
+-
+-            var key = SupporterKey;
+-
+-            var success = reg.registered;
+-
+-            if (!(lastChecked > DateTime.UtcNow.AddDays(-1)) || (!reg.registered))
+-            {
+-                var data = new Dictionary<string, string>
+-                {
+-                    { "feature", feature }, 
+-                    { "key", key }, 
+-                    { "mac", _appHost.SystemId }, 
+-                    { "systemid", _appHost.SystemId }, 
+-                    { "ver", version }, 
+-                    { "platform", _appHost.OperatingSystemDisplayName }
+-                };
+-
+-                try
+-                {
+-                    var options = new HttpRequestOptions
+-                    {
+-                        Url = MBValidateUrl,
+-
+-                        // Seeing block length errors
+-                        EnableHttpCompression = false,
+-                        BufferContent = false
+-                    };
+-
+-                    options.SetPostData(data);
+-
+-                    using (var response = (await _httpClient.Post(options).ConfigureAwait(false)))
+-                    {
+-                        using (var json = response.Content)
+-                        {
+-                            reg = _jsonSerializer.DeserializeFromStream<RegRecord>(json);
+-                            success = true;
+-                        }
+-                    }
+-
+-                    if (reg.registered)
+-                    {
+-                        _logger.Info("Registered for feature {0}", feature);
+-                        LicenseFile.AddRegCheck(feature, reg.expDate);
+-                    }
+-                    else
+-                    {
+-                        _logger.Info("Not registered for feature {0}", feature);
+-                        LicenseFile.RemoveRegCheck(feature);
+-                    }
+-
+-                }
+-                catch (Exception e)
+-                {
+-                    _logger.ErrorException("Error checking registration status of {0}", e, feature);
+-                }
+-            }
+-
+             var record = new MBRegistrationRecord
+             {
+-                IsRegistered = reg.registered,
+-                ExpirationDate = reg.expDate,
++                IsRegistered = true,
+                 RegChecked = true,
+-                RegError = !success
++                TrialVersion = false,
++                IsValid = true,
++                RegError = false
+             };
+ 
+-            record.TrialVersion = IsInTrial(reg.expDate, record.RegChecked, record.IsRegistered);
+-            record.IsValid = !record.RegChecked || record.IsRegistered || record.TrialVersion;
+-
+             return record;
+         }
+ 
+@@ -316,4 +229,4 @@
+             return isInTrial && !isRegistered;
+         }
+     }
+-}
+\ No newline at end of file
++}
