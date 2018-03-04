@@ -1431,6 +1431,8 @@
         };
 
         self.getRegistrationInfo = function (feature, apiClient, options) {
+            options = options || {};
+
             var cacheKey = getCacheKey(feature, apiClient, options);
             appStorage.setItem(cacheKey, JSON.stringify({
                 lastValidDate: new Date().getTime(),
