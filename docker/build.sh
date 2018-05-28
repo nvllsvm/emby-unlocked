@@ -26,17 +26,18 @@ cp -dr v4.5 /usr/lib/mono/xbuild-frameworks/.NETPortable/
 
 # build and install emby
 cd /build
-wget -O emby.tar.gz https://github.com/MediaBrowser/Emby/archive/$EMBY_VERSION.tar.gz
-wget -O emby-unlocked.tar.gz https://github.com/nvllsvm/emby-unlocked/archive/$EMBY_VERSION.tar.gz
-tar -xvf emby.tar.gz
-tar -xvf emby-unlocked.tar.gz
+git clone https://github.com/MediaBrowser/Emby Emby
+git -C Emby checkout $EMBY_VERSION
+
+git clone https://github.com/nvllsvm/emby-unlocked emby-unlocked
+git -C emby-unlocked checkout $EMBY_VERSION
 
 
 #export TERM=xterm
 mkdir /emby
-cd /build/Emby-$EMBY_VERSION
+cd /build/Emby
 patch -N -p1 Emby.Server.Implementations/Security/PluginSecurityManager.cs \
-    ../emby-unlocked-${EMBY_VERSION}/patches/PluginSecurityManager.cs.patch
+    ../emby-unlocked/patches/PluginSecurityManager.cs.patch
 
 xbuild \
     /p:Configuration='Release Mono' \
@@ -46,7 +47,7 @@ xbuild \
 find / -name 'MediaBrowser.Server.Mono.exe'
 mono --aot='full' -O='all' /emby/MediaBrowser.Server.Mono.exe
 
-cp ../emby-unlocked-$EMBY_VERSION/replacements/connectionmanager.js \
+cp ../emby-unlocked/replacements/connectionmanager.js \
     /emby/dashboard-ui/bower_components/emby-apiclient
 
 cd /
