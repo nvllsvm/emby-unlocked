@@ -1,50 +1,63 @@
 #!/bin/sh
 set -ex
 
-# Testing repo for Mono
-echo http://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
+BUILD_DIR=/build
+EMBY_DIR=/emby
 
-apk update
-apk upgrade
+install_dependencies() {
+    # Testing repo for Mono
+    echo http://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
 
-# Build deps
-apk add git ffmpeg-dev mono-dev binutils
+    apk update
+    apk upgrade
 
-# Run deps
-apk add ffmpeg mono sqlite imagemagick-dev sqlite-dev su-exec
+    # Build deps
+    apk add git ffmpeg-dev mono-dev binutils
 
-mkdir /build
+    # Run deps
+    apk add ffmpeg mono sqlite imagemagick-dev sqlite-dev su-exec
+}
 
-# install referenceassemblies-pcl
-cd /build
-git clone --depth 1 https://github.com/directhex/xamarin-referenceassemblies-pcl
-cd xamarin-referenceassemblies-pcl
-install -dm 755 /usr/lib/mono/xbuild-frameworks/.NETPortable/
-cp -dr v4.5 /usr/lib/mono/xbuild-frameworks/.NETPortable/
 
-# build and install emby
-cd /build
-git clone --depth 1 https://github.com/MediaBrowser/Emby
-git clone --depth 1 https://github.com/nvllsvm/emby-unlocked
+cleanup_dependencies() {
+    apk del git ffmpeg-dev mono-dev binutils
+}
 
-mkdir /emby
-cd /build/Emby
-patch -N -p1 Emby.Server.Implementations/Security/PluginSecurityManager.cs \
-    ../emby-unlocked/patches/PluginSecurityManager.cs.patch
 
-xbuild \
-    /p:Configuration='Release Mono' \
-    /p:Platform='Any CPU' \
-    /p:OutputPath='/emby' \
-    /t:build MediaBrowser.sln
-find / -name 'MediaBrowser.Server.Mono.exe'
-mono --aot='full' -O='all' /emby/MediaBrowser.Server.Mono.exe
+install_referenceassemblies() {
+    git clone --depth 1 https://github.com/directhex/xamarin-referenceassemblies-pcl
+    install -dm 755 /usr/lib/mono/xbuild-frameworks/.NETPortable/
+    cp -dr xamarin-referenceassemblies-pcl/v4.5 /usr/lib/mono/xbuild-frameworks/.NETPortable/
+}
 
-cp ../emby-unlocked/replacements/connectionmanager.js \
-    /emby/dashboard-ui/bower_components/emby-apiclient
 
-cd /
-rm -rf /build
+build_emby() {
+    git clone --depth 1 https://github.com/MediaBrowser/Emby
+    git clone --depth 1 https://github.com/nvllsvm/emby-unlocked
 
-# Remove build deps
-apk del git ffmpeg-dev mono-dev binutils
+    patch -N -p1 \
+        Emby/Emby.Server.Implementations/Security/PluginSecurityManager.cs \
+        emby-unlocked/patches/PluginSecurityManager.cs.patch
+
+    xbuild \
+        /p:Configuration='Release Mono' \
+        /p:Platform='Any CPU' \
+        /p:OutputPath="$EMBY_DIR" \
+        /t:build Emby/MediaBrowser.sln
+    mono --aot='full' -O='all' "$EMBY_DIR"/MediaBrowser.Server.Mono.exe
+
+    cp emby-unlocked/replacements/connectionmanager.js \
+        /emby/dashboard-ui/bower_components/emby-apiclient
+}
+
+
+mkdir -p "$EMBY_DIR" "$BUILD_DIR"
+install_dependencies
+
+cd "$BUILD_DIR"
+install_referenceassemblies
+build_emby
+cd
+
+cleanup_dependencies
+rm -rf "$BUILD_DIR"
