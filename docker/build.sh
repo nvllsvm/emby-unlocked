@@ -27,7 +27,10 @@ cp -dr v4.5 /usr/lib/mono/xbuild-frameworks/.NETPortable/
 # build and install emby
 cd /build
 git clone https://github.com/MediaBrowser/Emby Emby
-git -C Emby checkout $EMBY_VERSION
+
+# Workaround for incorrect tag https://github.com/MediaBrowser/Emby/issues/3299
+#git -C Emby checkout $EMBY_VERSION
+git -C Emby checkout e4f1a16550f7d497968d19683812e594785fbcd9
 
 git clone https://github.com/nvllsvm/emby-unlocked emby-unlocked
 git -C emby-unlocked checkout $EMBY_VERSION
