@@ -27,8 +27,6 @@ cd /build
 git clone --depth 1 https://github.com/MediaBrowser/Emby
 git clone --depth 1 https://github.com/nvllsvm/emby-unlocked
 
-
-#export TERM=xterm
 mkdir /emby
 cd /build/Emby
 patch -N -p1 Emby.Server.Implementations/Security/PluginSecurityManager.cs \
