@@ -24,8 +24,8 @@ cp -dr v4.5 /usr/lib/mono/xbuild-frameworks/.NETPortable/
 
 # build and install emby
 cd /build
-git clone --depth 1 https://github.com/MediaBrowser/Emby Emby
-git clone --depth 1 https://github.com/nvllsvm/emby-unlocked emby-unlocked
+git clone --depth 1 https://github.com/MediaBrowser/Emby
+git clone --depth 1 https://github.com/nvllsvm/emby-unlocked
 
 
 #export TERM=xterm
