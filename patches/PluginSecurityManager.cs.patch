@@ -1,22 +1,7 @@
-*** /home/draje/PluginSecurityManager.cs	2018-07-21 23:40:56.679819085 -0400
---- PluginSecurityManager.cs	2018-07-21 23:56:29.695217076 -0400
+*** a	2018-07-21 23:56:29.695217076 -0400
+--- b	2018-07-21 23:40:56.679819085 -0400
 ***************
-*** 188,201 ****
-  
-          private async Task<MBRegistrationRecord> GetRegistrationStatusInternal(string feature, bool forceCallToServer, string version, CancellationToken cancellationToken)
-          {
-!             return new MBRegistrationRecord
-              {
-!                 IsRegistered = true,
-!                 RegChecked = true,
-!                 RegError = false,
-!                 TrialVersion = false,
-!                 IsValid = true
-!             };
-          }
-  
-          private bool IsInTrial(DateTime expirationDate, bool regChecked, bool isRegistered)
---- 188,296 ----
+*** 188,296 ****
   
           private async Task<MBRegistrationRecord> GetRegistrationStatusInternal(string feature, bool forceCallToServer, string version, CancellationToken cancellationToken)
           {
@@ -126,15 +111,30 @@
           }
   
           private bool IsInTrial(DateTime expirationDate, bool regChecked, bool isRegistered)
-***************
-*** 211,214 ****
-              return isInTrial && !isRegistered;
+--- 188,201 ----
+  
+          private async Task<MBRegistrationRecord> GetRegistrationStatusInternal(string feature, bool forceCallToServer, string version, CancellationToken cancellationToken)
+          {
+!             return new MBRegistrationRecord
+              {
+!                 IsRegistered = true,
+!                 RegChecked = true,
+!                 RegError = false,
+!                 TrialVersion = false,
+!                 IsValid = true
+!             };
           }
-      }
-! }
---- 306,309 ----
+  
+          private bool IsInTrial(DateTime expirationDate, bool regChecked, bool isRegistered)
+***************
+*** 306,309 ****
               return isInTrial && !isRegistered;
           }
       }
 ! }
 \ No newline at end of file
+--- 211,214 ----
+              return isInTrial && !isRegistered;
+          }
+      }
+! }
