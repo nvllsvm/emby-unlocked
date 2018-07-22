@@ -8,26 +8,27 @@ install_dependencies() {
     # Testing repo for Mono
     echo http://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
 
-    apk update
-    apk upgrade
+    apk upgrade --no-cache
 
     # Build deps
-    apk add git ffmpeg-dev mono-dev binutils
+    apk add --no-cache -t .dev git ffmpeg-dev mono-dev binutils curl icu libunwind openssl bash zip
 
     # Run deps
-    apk add ffmpeg mono sqlite imagemagick-dev sqlite-dev su-exec
+    apk add --no-cache ffmpeg mono sqlite imagemagick-dev sqlite-dev su-exec
 }
 
 
 cleanup_dependencies() {
-    apk del git ffmpeg-dev mono-dev binutils
+    apk del --purge -t .dev
 }
 
 
-install_referenceassemblies() {
-    git clone --depth 1 https://github.com/directhex/xamarin-referenceassemblies-pcl
-    install -dm 755 /usr/lib/mono/xbuild-frameworks/.NETPortable/
-    cp -dr xamarin-referenceassemblies-pcl/v4.5 /usr/lib/mono/xbuild-frameworks/.NETPortable/
+build_msbuild() {
+    git clone --depth 1 https://github.com/Microsoft/msbuild.git
+    set +e
+    ./msbuild/build/build.sh
+    ./msbuild/build/build.sh -hostType mono
+    set -e
 }
 
 
@@ -39,7 +40,7 @@ build_emby() {
         Emby/Emby.Server.Implementations/Security/PluginSecurityManager.cs \
         emby-unlocked/patches/PluginSecurityManager.cs.patch
 
-    xbuild \
+    msbuild/artifacts/mono-msbuild/msbuild \
         /p:Configuration='Release Mono' \
         /p:Platform='Any CPU' \
         /p:OutputPath="$EMBY_DIR" \
@@ -55,9 +56,10 @@ mkdir -p "$EMBY_DIR" "$BUILD_DIR"
 install_dependencies
 
 cd "$BUILD_DIR"
-install_referenceassemblies
+build_msbuild
 build_emby
 cd
 
 cleanup_dependencies
-rm -rf "$BUILD_DIR"
+rm -rf "$BUILD_DIR" /build.sh /root /tmp
+mkdir /root /tmp
