@@ -1,6 +1,14 @@
 # emby-unlocked
 Emby with the premium Emby Premiere features unlocked.
 
+**Note** - I'm not going to be devoting much time to into maintaining emby-unlocked from here on. 
+The upstream project is too hostile towards the free software community. 
+
+* reliance upon proprietary blobs
+* missing build scripts
+* missing licenses
+* missing source code
+
 ## Releases
 Releases including the patch are available below:
 
