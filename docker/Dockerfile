@@ -5,11 +5,9 @@ RUN /build.sh
 
 EXPOSE 8096
 
-ENV PUID=1000
-ENV PGID=1000
+ENV PUID=1000 PGID=1000
 
-VOLUME /config
-VOLUME /media
+VOLUME /config /media
 
 HEALTHCHECK CMD wget -q http://localhost:8096/swagger -O /dev/null || exit 1
 
