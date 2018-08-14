@@ -8,13 +8,13 @@ install_dependencies() {
     # Testing repo for Mono
     echo http://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
 
-    apk upgrade --no-cache
+    apk upgrade
 
     # Build deps
-    apk add --no-cache -t .dev git ffmpeg-dev mono-dev binutils curl icu libunwind openssl bash zip
+    apk add -t .dev git ffmpeg-dev mono-dev binutils curl icu libunwind openssl bash zip
 
     # Run deps
-    apk add --no-cache ffmpeg mono sqlite imagemagick-dev sqlite-dev su-exec
+    apk add ffmpeg mono sqlite imagemagick-dev sqlite-dev su-exec
 }
 
 
@@ -61,5 +61,5 @@ build_emby
 cd
 
 cleanup_dependencies
-rm -rf "$BUILD_DIR" /build.sh /root /tmp
+rm -rf "$BUILD_DIR" /build.sh /root /tmp /var/cache/apk/*
 mkdir /root /tmp
