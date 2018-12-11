@@ -1,3 +1,12 @@
+**Announcing Jellyfin - An Emby Fork!** - I am now focusing my time on [Jellyfin: a free software fork of Emby](https://github.com/jellyfin/jellyfin).
+For those using the emby-unlocked image - a drop-in replacement of Jellyfin is available on [Docker Hub](https://hub.docker.com/r/jellyfin/jellyfin/) as `jellyfin/jellyfin`.
+
+⚠ This was spurred from Emby's decision to move to a **proprietary license** [[source]](https://github.com/MediaBrowser/Emby/issues/3479#issuecomment-444990184). ⚠
+
+
+---
+
+
 # emby-unlocked
 Emby with the premium Emby Premiere features unlocked.
 
