@@ -1,7 +1,13 @@
+**Update 2019-01-17** - The Emby team has deleted the relevant GitHub isuses in an attempt to hide community backlash.
+Below are archived versions of those issues:
+
+- [Issue 3075 - GPL Violation](https://web.archive.org/web/20181212044938/https://github.com/MediaBrowser/Emby/issues/3075)
+- [Issue 3479 - Source Code Missing (Going Proprietary)](https://web.archive.org/web/20181212100152/https://github.com/MediaBrowser/Emby/issues/3479)
+
 **Announcing Jellyfin - An Emby Fork!** - I am now focusing my time on [Jellyfin: a free software fork of Emby](https://github.com/jellyfin/jellyfin).
 For those using the emby-unlocked image - a drop-in replacement of Jellyfin is available on [Docker Hub](https://hub.docker.com/r/jellyfin/jellyfin/) as `jellyfin/jellyfin`.
 
-⚠ This was spurred from Emby's decision to move to a **proprietary license** [[source]](https://github.com/MediaBrowser/Emby/issues/3479#issuecomment-444990184). ⚠
+⚠ This was spurred from Emby's decision to move to a **proprietary license** [[source]](https://web.archive.org/web/20181212100152/https://github.com/MediaBrowser/Emby/issues/3479). ⚠
 
 
 ---
